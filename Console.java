@@ -1,4 +1,4 @@
-package reservationapp;
+package com.mycompany.pitcherteamapp;
 
 import java.util.Scanner;
 
