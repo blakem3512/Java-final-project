@@ -1,4 +1,5 @@
-package com.mycompany.pitcherteamapp;
+package csd2522.wrm.mavenproject1;
+
 // JavaFX imports for application lifecycle and window management.
 import javafx.application.Application;      // Used to extend the Application class.
 import javafx.stage.Stage;                  // Manages the primary window (stage) of the app.
@@ -416,6 +417,8 @@ public class PitcherTeamApp extends Application {
     /*
      * Generate a formatted report from the list of Pitcher objects.
      * Edited by Wyatt.
+    
+     * Extra formatting for the report needs done
      */
     private String generateReport(List<Pitcher> pitchers) {
         StringBuilder sb = new StringBuilder();
