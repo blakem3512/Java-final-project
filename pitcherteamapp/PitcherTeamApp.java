@@ -1,5 +1,4 @@
 package com.mycompany.pitcherteamapp;
-
 // JavaFX imports for application lifecycle and window management.
 import javafx.application.Application;      // Used to extend the Application class.
 import javafx.stage.Stage;                  // Manages the primary window (stage) of the app.
@@ -108,6 +107,10 @@ public class PitcherTeamApp extends Application {
         inningsHeader.setPrefWidth(130);  // edited by Wyatt
         Label earnedHeader = new Label("Earned Runs");
         earnedHeader.setPrefWidth(120);  // edited by Wyatt
+        /*
+        -Space for more header titles
+        */
+        
         headerRow.getChildren().addAll(nameHeader, inningsHeader, earnedHeader);
         centerContainer.getChildren().add(headerRow);
 
@@ -148,7 +151,12 @@ public class PitcherTeamApp extends Application {
         btnRemovePitcher.setOnAction(e -> {
             // Remove the last pitcher row if one exists.
             int count = pitcherRowsContainer.getChildren().size();
-            if (count > 0) {
+            /*
+            - Changed to >= 2 in order to make sure there's at least 1 row for
+            - data to be entered
+            - Edited by Matthew Blake
+            */
+            if (count >= 2) {
                 pitcherRowsContainer.getChildren().remove(count - 1);
             }
         });
@@ -175,6 +183,10 @@ public class PitcherTeamApp extends Application {
                     TextField tfName = (TextField) row.getChildren().get(0);
                     TextField tfInnings = (TextField) row.getChildren().get(1);
                     TextField tfEarned = (TextField) row.getChildren().get(2);
+                    /*
+                    -Space for other textfields for statistics
+                    */
+                    
                     String name = tfName.getText().trim();
                     String inningsStr = tfInnings.getText().trim();
                     String earnedStr = tfEarned.getText().trim();
