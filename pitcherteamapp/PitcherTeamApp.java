@@ -57,6 +57,13 @@ public class PitcherTeamApp extends Application {
         btnEnterData.setOnAction(e -> {
             Scene dataEntryScene = createDataEntryScene();
             primaryStage.setScene(dataEntryScene);
+            /*
+            -Positions the data entry screen to be in the middle when it shows up
+            -Edited by Matthew Blake
+            */
+            primaryStage.setX(165); //  X coordinate (left position)
+            primaryStage.setY(150); // Y coordinate (top position)
+            primaryStage.show();
         });
 
         // Action: Switch to Game Report Scene.
@@ -105,14 +112,32 @@ public class PitcherTeamApp extends Application {
         Label nameHeader = new Label("Pitcher Name");
         nameHeader.setPrefWidth(150);  // edited by Wyatt
         Label inningsHeader = new Label("Innings Pitched");
-        inningsHeader.setPrefWidth(130);  // edited by Wyatt
-        Label earnedHeader = new Label("Earned Runs");
-        earnedHeader.setPrefWidth(120);  // edited by Wyatt
-        /*
-        -Space for more header titles
-        */
+        inningsHeader.setPrefWidth(135);  // edited by Wyatt
+        Label  hitsHeader = new Label("Hits");
+        hitsHeader.setPrefWidth(120);  // edited by Wyatt
         
-        headerRow.getChildren().addAll(nameHeader, inningsHeader, earnedHeader);
+        
+        Label runHeader = new Label("Runs");
+        runHeader.setPrefWidth(120);  // edited by Matthew Blake
+        Label earnedHeader = new Label("Earned Runs");
+        earnedHeader.setPrefWidth(120);  // edited by Matthew Blake
+        Label baseOnBallsHeader = new Label("Base on Balls");
+        baseOnBallsHeader.setPrefWidth(120);  // edited by Matthew Blake
+        Label strikeOutHeader = new Label("Strikeouts");
+        strikeOutHeader.setPrefWidth(120);  // edited by Matthew Blake
+        Label atBatsHeader = new Label("At Bats");
+        atBatsHeader.setPrefWidth(120);  // edited by Matthew Blake
+        Label battersFacedHeader = new Label("Batters Faced");
+        battersFacedHeader.setPrefWidth(120);  // edited by Matthew Blake
+        Label numPitchesHeader = new Label("Number of Pitches");
+        numPitchesHeader.setPrefWidth(120);  // edited by Matthew Blake
+
+        /*
+        -Added the remaining headers
+        -Edited by Matthew Blake
+        */
+        headerRow.getChildren().addAll(nameHeader, inningsHeader, hitsHeader, runHeader, earnedHeader, baseOnBallsHeader,
+                strikeOutHeader, atBatsHeader, battersFacedHeader, numPitchesHeader);
         centerContainer.getChildren().add(headerRow);
 
         // VBox container that will hold dynamic pitcher rows.
@@ -183,26 +208,54 @@ public class PitcherTeamApp extends Application {
                         continue;
                     TextField tfName = (TextField) row.getChildren().get(0);
                     TextField tfInnings = (TextField) row.getChildren().get(1);
-                    TextField tfEarned = (TextField) row.getChildren().get(2);
+                    TextField tfHits = (TextField) row.getChildren().get(2);
+                    
                     /*
-                    -Space for other textfields for statistics
+                    -Added other textfields for remaining information
+                    -Edited by Matthew Blake
                     */
+                    TextField tfRuns = (TextField) row.getChildren().get(3);
+                    TextField tfEarned = (TextField) row.getChildren().get(4);
+                    TextField tfBaseOnBalls = (TextField) row.getChildren().get(5);
+                    TextField tfSO = (TextField) row.getChildren().get(6);
+                    TextField tfAtBats = (TextField) row.getChildren().get(7);
+                    TextField tfBattFaced = (TextField) row.getChildren().get(8);
+                    TextField tfNumOfPitches = (TextField) row.getChildren().get(9);
+                   
                     
                     String name = tfName.getText().trim();
                     String inningsStr = tfInnings.getText().trim();
+                    String hitsStr = tfHits.getText().trim();
+                    
+                    /*
+                    -Added other strings for remaining textfields
+                    -Edited by Matthew Blake
+                    */
+                    String runsStr = tfRuns.getText().trim();
                     String earnedStr = tfEarned.getText().trim();
+                    String BaseOnBallsStr = tfBaseOnBalls.getText().trim();
+                    String SOStr = tfSO.getText().trim();
+                    String AtBatsStr = tfAtBats.getText().trim();
+                    String BattFacedStr = tfBattFaced.getText().trim();
+                    String NumPitchesStr = tfNumOfPitches.getText().trim();
 
                     // If the entire row is empty, skip it.
-                    if (name.isEmpty() && inningsStr.isEmpty() && earnedStr.isEmpty()) {
+                    if (name.isEmpty() && inningsStr.isEmpty() && earnedStr.isEmpty() && 
+                            hitsStr.isEmpty() && runsStr.isEmpty() && BaseOnBallsStr.isEmpty() &&
+                            SOStr.isEmpty() && AtBatsStr.isEmpty() && BattFacedStr.isEmpty() && NumPitchesStr.isEmpty()) {
                         rowIndex++;
                         continue;
                     }
+                    
                     // If partially filled, show an error.
-                    if (name.isEmpty() || inningsStr.isEmpty() || earnedStr.isEmpty()) {
+                    if (name.isEmpty() || inningsStr.isEmpty() || earnedStr.isEmpty() || 
+                            hitsStr.isEmpty() || runsStr.isEmpty() || BaseOnBallsStr.isEmpty() ||
+                            SOStr.isEmpty() ||AtBatsStr.isEmpty() || BattFacedStr.isEmpty() || NumPitchesStr.isEmpty()) {
                         showAlert(Alert.AlertType.ERROR, "Validation Error",
                             "Incomplete data in pitcher row " + rowIndex + ". Please fill all fields or leave all blank.");
                         return;
                     }
+                    
                     // Validate innings pitched as a double.
                     double innings;
                     try {
@@ -217,6 +270,7 @@ public class PitcherTeamApp extends Application {
                             "Invalid innings pitched in row " + rowIndex);
                         return;
                     }
+                    
                     // Validate earned runs as an integer.
                     int earnedRuns;
                     try {
@@ -231,6 +285,13 @@ public class PitcherTeamApp extends Application {
                             "Invalid earned runs in row " + rowIndex);
                         return;
                     }
+                    
+                    /*
+                    NOTE: ADD VALIDATION FOR THE REMAINING BOXES: Hits, Runs (not earned runs), 
+                    Base on Balls, Strikeouts, At Bats, Batters faced, and # of pitches
+                    */
+                    
+                    
                     // Create the Pitcher object from validated data.
                     Pitcher p = new Pitcher(name, innings, earnedRuns);
                     pitchers.add(p);
@@ -252,8 +313,12 @@ public class PitcherTeamApp extends Application {
                 showAlert(Alert.AlertType.ERROR, "File Error", "Error writing to file: " + ex.getMessage());
             }
         });
-
-        return new Scene(pane, 600, 450);
+        
+        /*
+        - Temporarily made bigger to incorporate more data to be entered
+        - Edited by Matthew Blake
+        */
+        return new Scene(pane, 1300, 450);
     }
 
     /*
@@ -264,16 +329,48 @@ public class PitcherTeamApp extends Application {
     private HBox createPitcherRow() {
         HBox row = new HBox(10);
         row.setAlignment(Pos.CENTER_LEFT);
+        
         TextField tfName = new TextField();
         tfName.setPromptText("Name");
         tfName.setPrefWidth(150);  // edited by Wyatt: Fixed width for alignment.
+        
         TextField tfInnings = new TextField();
         tfInnings.setPromptText("Innings");
         tfInnings.setPrefWidth(130);  // edited by Wyatt: Fixed width for alignment.
+        
         TextField tfEarned = new TextField();
         tfEarned.setPromptText("Earned Runs");
         tfEarned.setPrefWidth(120);  // edited by Wyatt: Fixed width for alignment.
-        row.getChildren().addAll(tfName, tfInnings, tfEarned);
+        
+        TextField tfHits = new TextField();
+        tfHits.setPromptText("Hits");
+        tfHits.setPrefWidth(120);   // edited by Matthew Blake
+
+        TextField tfRuns = new TextField();
+        tfRuns.setPromptText("Runs");
+        tfRuns.setPrefWidth(120); 
+        
+        TextField tfBaseOnBalls = new TextField();
+        tfBaseOnBalls.setPromptText("Base on Balls");
+        tfBaseOnBalls.setPrefWidth(120);
+
+        TextField tfSO = new TextField();
+        tfSO.setPromptText("Strikeouts");
+        tfSO.setPrefWidth(120);
+
+        TextField tfAtBats = new TextField();
+        tfAtBats.setPromptText("At Bats");
+        tfAtBats.setPrefWidth(120);
+
+        TextField tfBattFaced = new TextField();
+        tfBattFaced.setPromptText("Batters Faced");
+        tfBattFaced.setPrefWidth(120);
+
+        TextField tfNumOfPitches = new TextField();
+        tfNumOfPitches.setPromptText("Number of Pitches");
+        tfNumOfPitches.setPrefWidth(120);
+
+        row.getChildren().addAll(tfName, tfInnings, tfHits, tfRuns, tfEarned, tfBaseOnBalls, tfSO, tfAtBats, tfBattFaced, tfNumOfPitches);
         return row;
     }
 
@@ -417,8 +514,6 @@ public class PitcherTeamApp extends Application {
     /*
      * Generate a formatted report from the list of Pitcher objects.
      * Edited by Wyatt.
-    
-     * Extra formatting for the report needs done
      */
     private String generateReport(List<Pitcher> pitchers) {
         StringBuilder sb = new StringBuilder();
