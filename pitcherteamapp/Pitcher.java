@@ -1,21 +1,20 @@
 /*
-    Created by:  Hilary Philistin,
-                 Matthew Blake, 
-                 Henry Sesay, 
-                 Braden Henry, 
-                 Zach Thompson, 
-                 Wyatt Metcalf
-    Created on:  05/08/2025
-    Team’s name: Pitcher
-    Description: Create a baseball statistics program that produce a report's 
-                 list of the statistics for all pitchers in that game and 
-                 calculates the earned run average for each pitcher.
+    Created by:    Hilary Philistin,
+                   Matthew Blake, 
+                   Henry Sesay, 
+                   Braden Henry, 
+                   Zach Thompson, 
+                   Wyatt Metcalf
+    Created on:    05/08/2025
+    Team’s name:   Pitcher
+    Description:   Create a baseball statistics program that produce a report's 
+                   list of the statistics for all pitchers in that game and 
+                   calculates the earned run average for each pitcher.
 */
 
 package csd2522.wrm.mavenproject1;
 
-// The Pitcher class takes a pitcher's statistics and calculates ERA.  
-    
+// The Pitcher class takes a pitcher's statistics and calculates ERA.      
 public class Pitcher {
     private final String name;
     private final double inningsPitched;
