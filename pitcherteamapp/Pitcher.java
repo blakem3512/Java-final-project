@@ -29,6 +29,7 @@ public class Pitcher {
     private final int battersFaced;
     private final int numberOfPitches;
 
+    //Constructor object for Pitcher, sets up processing for all the values entered
     public Pitcher(String name, double inningsPitched, int earnedRuns, int hits, int runs,
                    int baseOnBalls, int strikeouts, int atBats, int battersFaced, int numberOfPitches) {
         this.name = name;
