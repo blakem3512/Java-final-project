@@ -30,6 +30,7 @@ import java.util.*;                         // Provides collection classes like 
 import java.time.LocalDate;                 // Deals with dates without time-of-day details.
 import java.time.format.DateTimeFormatter;  // Formats LocalDate for file naming.
 import java.io.*;                           // Provides I/O functionalities for reading and writing files.
+import javafx.scene.text.Font;              // Allows for fonts to be added to reports 
 
 public class PitcherTeamApp extends Application {
 
@@ -404,76 +405,81 @@ public class PitcherTeamApp extends Application {
      * - Includes a Save Report button to store the report in a text file for printing.
      * Edited by Matthew, Henry, and Wyatt.
      */   
-    private Scene createGameReportScene() {
-        BorderPane pane = new BorderPane();
-        pane.setPadding(new Insets(15));
+private Scene createGameReportScene() {
+    BorderPane pane = new BorderPane();
+    pane.setPadding(new Insets(15));
 
-        // TOP: HBox for selecting the game date.
-        HBox topBox = new HBox(10);
-        topBox.setAlignment(Pos.CENTER_LEFT);
-        Label lblDate = new Label("Select Game Date:");
-        DatePicker dpGameDate = new DatePicker(LocalDate.now());
-        topBox.getChildren().addAll(lblDate, dpGameDate);
-        pane.setTop(topBox);
+    // TOP: HBox for selecting the game date.
+    HBox topBox = new HBox(10);
+    topBox.setAlignment(Pos.CENTER_LEFT);
+    Label lblDate = new Label("Select Game Date:");
+    DatePicker dpGameDate = new DatePicker(LocalDate.now());
+    topBox.getChildren().addAll(lblDate, dpGameDate);
+    pane.setTop(topBox);
 
-        // CENTER: TextArea to display the generated report.
-        TextArea reportArea = new TextArea();
-        reportArea.setEditable(false);
-        pane.setCenter(reportArea);
+    // CENTER: TextArea to display the generated report.
+    TextArea reportArea = new TextArea();
+    reportArea.setEditable(false);
+    // Disable text wrapping so the formatted report columns don't break into multiple lines.
+    reportArea.setWrapText(false);
+    // Use a monospaced font to ensure each character takes up the same width.
+    reportArea.setFont(Font.font("monospaced"));
+    pane.setCenter(reportArea);
 
-        // BOTTOM: HBox with buttons for report actions.
-        HBox bottomBox = new HBox(10);
-        bottomBox.setAlignment(Pos.CENTER_RIGHT);
-        Button btnLoad = new Button("Load Report");
-        Button btnSave = new Button("Save Report");
-        Button btnBack = new Button("Back");
-        bottomBox.getChildren().addAll(btnLoad, btnSave, btnBack);
-        pane.setBottom(bottomBox);
+    // BOTTOM: HBox with buttons for report actions.
+    HBox bottomBox = new HBox(10);
+    bottomBox.setAlignment(Pos.CENTER_RIGHT);
+    Button btnLoad = new Button("Load Report");
+    Button btnSave = new Button("Save Report");
+    Button btnBack = new Button("Back");
+    bottomBox.getChildren().addAll(btnLoad, btnSave, btnBack);
+    pane.setBottom(bottomBox);
 
-        // "Back" button returns to the main menu.
-        btnBack.setOnAction(e -> primaryStage.setScene(createMainMenuScene()));
+    // "Back" button returns to the main menu.
+    btnBack.setOnAction(e -> primaryStage.setScene(createMainMenuScene()));
 
-        // "Load Report": Read the CSV file, generate the report (including ERA calculations), and display it.
-        btnLoad.setOnAction(e -> {
-            LocalDate gameDate = dpGameDate.getValue();
-            if (gameDate == null) {
-                showAlert(Alert.AlertType.ERROR, "Validation Error", "Please select a game date.");
-                return;
-            }
-            String fileName = "game_" + gameDate.format(formatter) + ".csv";
-            File file = new File(fileName);
-            if (!file.exists()) {
-                showAlert(Alert.AlertType.ERROR, "File Not Found", "No data file found for the selected date.");
-                return;
-            }
-            try {
-                List<Pitcher> pitchers = readGameDataFromFile(fileName);
-                String report = generateReport(pitchers);
-                reportArea.setText(report);
-            } catch (IOException ex) {
-                showAlert(Alert.AlertType.ERROR, "File Error", "Error reading file: " + ex.getMessage());
-            }
-        });
+    // "Load Report": Read the CSV file, generate the report (including ERA calculations), and display it.
+    btnLoad.setOnAction(e -> {
+        LocalDate gameDate = dpGameDate.getValue();
+        if (gameDate == null) {
+            showAlert(Alert.AlertType.ERROR, "Validation Error", "Please select a game date.");
+            return;
+        }
+        String fileName = "game_" + gameDate.format(formatter) + ".csv";
+        File file = new File(fileName);
+        if (!file.exists()) {
+            showAlert(Alert.AlertType.ERROR, "File Not Found", "No data file found for the selected date.");
+            return;
+        }
+        try {
+            List<Pitcher> pitchers = readGameDataFromFile(fileName);
+            String report = generateReport(pitchers);
+            reportArea.setText(report);
+        } catch (IOException ex) {
+            showAlert(Alert.AlertType.ERROR, "File Error", "Error reading file: " + ex.getMessage());
+        }
+    });
 
-        // "Save Report": Writes the report displayed in the TextArea to a text file.
-        btnSave.setOnAction(e -> {
-            String reportText = reportArea.getText();
-            if (reportText.isEmpty()) {
-                showAlert(Alert.AlertType.ERROR, "No Report", "There is no report to save.");
-                return;
-            }
-            LocalDate gameDate = dpGameDate.getValue();
-            String reportFileName = "report_" + gameDate.format(formatter) + ".txt";
-            try (PrintWriter pw = new PrintWriter(new FileWriter(reportFileName))) {
-                pw.write(reportText);
-                showAlert(Alert.AlertType.INFORMATION, "Success", "Report saved to " + reportFileName);
-            } catch (IOException ex) {
-                showAlert(Alert.AlertType.ERROR, "File Error", "Error saving report: " + ex.getMessage());
-            }
-        });
+    // "Save Report": Writes the report displayed in the TextArea to a text file.
+    btnSave.setOnAction(e -> {
+        String reportText = reportArea.getText();
+        if (reportText.isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "No Report", "There is no report to save.");
+            return;
+        }
+        LocalDate gameDate = dpGameDate.getValue();
+        String reportFileName = "report_" + gameDate.format(formatter) + ".txt";
+        try (PrintWriter pw = new PrintWriter(new FileWriter(reportFileName))) {
+            pw.write(reportText);
+            showAlert(Alert.AlertType.INFORMATION, "Success", "Report saved to " + reportFileName);
+        } catch (IOException ex) {
+            showAlert(Alert.AlertType.ERROR, "File Error", "Error saving report: " + ex.getMessage());
+        }
+    });
 
-        return new Scene(pane, 800, 400); // Updated scene window to fit all stats - Wyatt - 5/9/2025
-    }
+    return new Scene(pane, 800, 400);
+}
+
 
     /*
      * Create the Multi-Game Summary Scene.
@@ -482,129 +488,131 @@ public class PitcherTeamApp extends Application {
      * Edited by Matthew, Wyatt, Zach
      * Final Edit -  5/9/25.
      */
-    private Scene createSummaryReportScene() {
-        BorderPane pane = new BorderPane();
-        pane.setPadding(new Insets(15));
+private Scene createSummaryReportScene() {
+    BorderPane pane = new BorderPane();
+    pane.setPadding(new Insets(15));
 
-        // TOP: User enters number of recent games to summarize.
-        HBox topBox = new HBox(10);
-        topBox.setAlignment(Pos.CENTER_LEFT);
-        Label lblInstruction = new Label("Enter number of recent games to summarize:");
-        TextField tfNumGames = new TextField();
-        tfNumGames.setPrefWidth(50);
-        Button btnSummarize = new Button("Summarize");
-        topBox.getChildren().addAll(lblInstruction, tfNumGames, btnSummarize);
-        pane.setTop(topBox);
+    // TOP: User enters number of recent games to summarize.
+    HBox topBox = new HBox(10);
+    topBox.setAlignment(Pos.CENTER_LEFT);
+    Label lblInstruction = new Label("Enter number of recent games to summarize:");
+    TextField tfNumGames = new TextField();
+    tfNumGames.setPrefWidth(50);
+    Button btnSummarize = new Button("Summarize");
+    topBox.getChildren().addAll(lblInstruction, tfNumGames, btnSummarize);
+    pane.setTop(topBox);
 
-        // CENTER: TextArea displays summary report.
-        TextArea summaryArea = new TextArea();
-        summaryArea.setEditable(false);
-        pane.setCenter(summaryArea);
+    // CENTER: TextArea displays summary report.
+    TextArea summaryArea = new TextArea();
+    summaryArea.setEditable(false);
+    summaryArea.setWrapText(false);                      // Disable wrap to maintain alignment.
+    summaryArea.setFont(Font.font("monospaced"));        // Use monospaced font for fixed-width characters.
+    pane.setCenter(summaryArea);
 
-        // BOTTOM: Back button.
-        HBox bottomBox = new HBox(10);
-        bottomBox.setAlignment(Pos.CENTER_RIGHT);
-        Button btnBack = new Button("Back");
-        bottomBox.getChildren().add(btnBack);
-        pane.setBottom(bottomBox);
+    // BOTTOM: Back button.
+    HBox bottomBox = new HBox(10);
+    bottomBox.setAlignment(Pos.CENTER_RIGHT);
+    Button btnBack = new Button("Back");
+    bottomBox.getChildren().add(btnBack);
+    pane.setBottom(bottomBox);
 
-        btnBack.setOnAction(e -> primaryStage.setScene(createMainMenuScene()));
+    btnBack.setOnAction(e -> primaryStage.setScene(createMainMenuScene()));
 
-        btnSummarize.setOnAction(e -> {
-            int numGames;
+    btnSummarize.setOnAction(e -> {
+        int numGames;
+        try {
+            numGames = Integer.parseInt(tfNumGames.getText().trim());
+        } catch (NumberFormatException ex) {
+            showAlert(Alert.AlertType.ERROR, "Validation Error", "Invalid number of games.");
+            return;
+        }
+        // Retrieves all game files 
+        File dir = new File(".");
+        File[] gameFiles = dir.listFiles((d, name) -> name.matches("game_\\d{4}-\\d{2}-\\d{2}\\.csv"));
+        if (gameFiles == null || gameFiles.length < numGames) {
+            showAlert(Alert.AlertType.ERROR, "File Error", "Not enough game files available for summarization.");
+            return;
+        }
+        // Sorts game files by name so that the most recent games (by date in the filename) come first.
+        Arrays.sort(gameFiles, Comparator.comparing(File::getName).reversed());
+
+        // Use a Map to combine the statistics per pitcher.
+        Map<String, CombinedStats> statsMap = new HashMap<>();
+        for (int i = 0; i < numGames; i++) {
             try {
-                numGames = Integer.parseInt(tfNumGames.getText().trim());
-            } catch (NumberFormatException ex) {
-                showAlert(Alert.AlertType.ERROR, "Validation Error", "Invalid number of games.");
-                return;
-            }
-            // Retrieves all game files 
-            File dir = new File(".");
-            File[] gameFiles = dir.listFiles((d, name) -> name.matches("game_\\d{4}-\\d{2}-\\d{2}\\.csv"));
-            if (gameFiles == null || gameFiles.length < numGames) {
-                showAlert(Alert.AlertType.ERROR, "File Error", "Not enough game files available for summarization.");
-                return;
-            }
-            // Sorts game files by name so that the most recent games (by date in the filename) come first.
-            Arrays.sort(gameFiles, Comparator.comparing(File::getName).reversed());
-    
-            // Use a Map to combine the statistics per pitcher.
-            Map<String, CombinedStats> statsMap = new HashMap<>();
-            for (int i = 0; i < numGames; i++) {
-                try {
-                    List<Pitcher> gamePitchers = readGameDataFromFile(gameFiles[i].getName());
-                    for (Pitcher p : gamePitchers) {
-                        CombinedStats agg = statsMap.getOrDefault(p.getName(), new CombinedStats());
-                        agg.inningsPitched   += p.getInningsPitched();
-                        agg.earnedRuns       += p.getEarnedRuns();
-                        agg.hits             += p.getHits();
-                        agg.runs             += p.getRuns();
-                        agg.baseOnBalls      += p.getBaseOnBalls();
-                        agg.strikeouts       += p.getStrikeouts();
-                        agg.atBats           += p.getAtBats();
-                        agg.battersFaced     += p.getBattersFaced();
-                        agg.numPitches       += p.getNumberOfPitches();
-                        statsMap.put(p.getName(), agg);
-                    }
-                } catch (IOException ex) {
-                    showAlert(Alert.AlertType.ERROR, "File Error", "Error reading file " + gameFiles[i].getName() + ": " + ex.getMessage());
-                    return;
+                List<Pitcher> gamePitchers = readGameDataFromFile(gameFiles[i].getName());
+                for (Pitcher p : gamePitchers) {
+                    CombinedStats agg = statsMap.getOrDefault(p.getName(), new CombinedStats());
+                    agg.inningsPitched   += p.getInningsPitched();
+                    agg.earnedRuns       += p.getEarnedRuns();
+                    agg.hits             += p.getHits();
+                    agg.runs             += p.getRuns();
+                    agg.baseOnBalls      += p.getBaseOnBalls();
+                    agg.strikeouts       += p.getStrikeouts();
+                    agg.atBats           += p.getAtBats();
+                    agg.battersFaced     += p.getBattersFaced();
+                    agg.numPitches       += p.getNumberOfPitches();
+                    statsMap.put(p.getName(), agg);
                 }
+            } catch (IOException ex) {
+                showAlert(Alert.AlertType.ERROR, "File Error", "Error reading file " + gameFiles[i].getName() + ": " + ex.getMessage());
+                return;
             }
-    
-            // Generates a formatted summary report.
-            StringBuilder sb = new StringBuilder();
-            sb.append("Summary Report for Last ").append(numGames).append(" Games\n");
-            sb.append("============================================================\n\n");
-    
-            // Defines column widths for the headers and data.
-            int nameWidth = 15;
-            int inningsWidth = 15;
-            int erWidth = 15; 
-            int hitsWidth = 10;
-            int runsWidth = 10;
-            int bbWidth = 10;
-            int soWidth = 10;
-            int atBatsWidth = 15;
-            int battersWidth = 17;
-            int pitchesWidth = 13;
-            int eraWidth = 10;
-    
-            // Writes header.
-            sb.append(String.format("%-" + nameWidth + "s %" + inningsWidth + "s %" + erWidth + "s %" 
-                    + hitsWidth + "s %" + runsWidth + "s %" + bbWidth + "s %" + soWidth + "s %"
-                    + atBatsWidth + "s %" + battersWidth + "s %" + pitchesWidth + "s %" + eraWidth + "s\n", 
-                    "Name", "Innings", "ER", "Hits", "Runs", "BB", "SO", "At Bats", "Batters Faced", "Pitches", "ERA"));
-            sb.append("-".repeat(nameWidth + inningsWidth + erWidth + hitsWidth + runsWidth + bbWidth 
-                    + soWidth + atBatsWidth + battersWidth + pitchesWidth + eraWidth)).append("\n");
-    
-            // Writes combined stat data.
-            for (Map.Entry<String, CombinedStats> entry : statsMap.entrySet()) {
-                String name = entry.getKey();
-                CombinedStats agg = entry.getValue();
-                // Calculates ERA based on aggregated totals.
-                double era = (agg.inningsPitched > 0) ? (agg.earnedRuns * 9) / agg.inningsPitched : 0;
-    
-                sb.append(String.format("%-" + nameWidth + "s  %" + inningsWidth + ".2f %" + erWidth + "d %" 
-                    + hitsWidth + "d %" + runsWidth + "d %" + bbWidth + "d %" + soWidth + "d %"
-                    + atBatsWidth + "d %" + battersWidth + "d %" + pitchesWidth + "d %" + eraWidth + ".2f\n",
-                    name,
-                    agg.inningsPitched,
-                    agg.earnedRuns,
-                    agg.hits,
-                    agg.runs,
-                    agg.baseOnBalls,
-                    agg.strikeouts,
-                    agg.atBats,
-                    agg.battersFaced,
-                    agg.numPitches,
-                    era));
-            }
-            summaryArea.setText(sb.toString());
-        });
+        }
 
-        return new Scene(pane, 800, 500);
-    }
+        // Generates a formatted summary report.
+        StringBuilder sb = new StringBuilder();
+        sb.append("Summary Report for Last ").append(numGames).append(" Games\n");
+        sb.append("=".repeat(130)).append("\n\n");
+
+        // Defines column widths for the headers and data.
+        int nameWidth = 15;
+        int inningsWidth = 15;
+        int erWidth = 15; 
+        int hitsWidth = 10;
+        int runsWidth = 10;
+        int bbWidth = 10;
+        int soWidth = 10;
+        int atBatsWidth = 15;
+        int battersWidth = 17;
+        int pitchesWidth = 13;
+        int eraWidth = 10;
+
+        // Writes header using a consistent format string.
+        String headerFormat = "%-15s %15s %15s %10s %10s %10s %10s %15s %17s %13s %10s\n";  // Each conversion specifier uses the widths above.
+        sb.append(String.format(headerFormat, 
+            "Name", "Innings", "ER", "Hits", "Runs", "BB", "SO", "At Bats", "Batters Faced", "Pitches", "ERA"));
+        sb.append("-".repeat(nameWidth + inningsWidth + erWidth + hitsWidth + runsWidth + bbWidth 
+            + soWidth + atBatsWidth + battersWidth + pitchesWidth + eraWidth)).append("\n");
+
+        // Writes combined stat data using a consistent format string.
+        String rowFormat = "%-15s %15.2f %15d %10d %10d %10d %10d %15d %17d %13d %10.2f\n";
+        for (Map.Entry<String, CombinedStats> entry : statsMap.entrySet()) {
+            String name = entry.getKey();
+            CombinedStats agg = entry.getValue();
+            // Calculates ERA based on aggregated totals.
+            double era = (agg.inningsPitched > 0) ? (agg.earnedRuns * 9) / agg.inningsPitched : 0;
+
+            sb.append(String.format(rowFormat,
+                name,
+                agg.inningsPitched,
+                agg.earnedRuns,
+                agg.hits,
+                agg.runs,
+                agg.baseOnBalls,
+                agg.strikeouts,
+                agg.atBats,
+                agg.battersFaced,
+                agg.numPitches,
+                era));
+        }
+        summaryArea.setText(sb.toString());
+    });
+
+    // Increase the scene width to 800 so all data displays without stretching.
+    return new Scene(pane, 800, 500);
+}
+
 
     /*
      * Helper method to display an alert.
@@ -704,12 +712,12 @@ public class PitcherTeamApp extends Application {
         int pitchesWidth = 13;
         int eraWidth = 10;
 
-        // Adds the header with padding to ensure proper alignment.
+        // Add the header with padding to ensure proper alignment.
         sb.append(String.format("%-" + nameWidth + "s %" + inningsWidth + "s %" + earnedRunsWidth + "s %" + hitsWidth + "s %" + runsWidth + "s %" + bbWidth + "s %" + soWidth + "s %" + atBatsWidth + "s %" + battersFacedWidth + "s %" + pitchesWidth + "s %" + eraWidth + "s\n", 
                 "Name", "Innings", "Earned Runs", "Hits", "Runs", "BB", "SO", "At Bats", "Batters Faced", "Pitches", "ERA"));
         sb.append("-".repeat(nameWidth + inningsWidth + earnedRunsWidth + hitsWidth + runsWidth + bbWidth + soWidth + atBatsWidth + battersFacedWidth + pitchesWidth + eraWidth)).append("\n");
 
-        // Adds data for each pitcher.
+        // Add data for each pitcher.
         for (Pitcher p : pitchers) {
             sb.append(String.format("%-" + nameWidth + "s  %" + inningsWidth + ".2f     %" + earnedRunsWidth + "d         %" + hitsWidth + "d   %" + runsWidth + "d    %" + bbWidth + "d   %" + soWidth + "d %" + atBatsWidth + "d   %" + battersFacedWidth + "d         %" + pitchesWidth + "d      %" + eraWidth + ".2f\n",
                     p.getName(),
