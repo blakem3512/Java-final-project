@@ -472,7 +472,7 @@ public class PitcherTeamApp extends Application {
             }
         });
 
-        return new Scene(pane, 600, 400);
+        return new Scene(pane, 800, 400); // Updated scene window to fit all stats - Wyatt - 5/9/2025
     }
 
     /*
