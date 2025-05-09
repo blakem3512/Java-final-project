@@ -237,21 +237,18 @@ public class PitcherTeamApp extends Application {
                     TextField tfNumOfPitches = (TextField) row.getChildren().get(9);
                    
                     
+                    // Get text from the TextFields
                     String name = tfName.getText().trim();
                     String inningsStr = tfInnings.getText().trim();
                     String hitsStr = tfHits.getText().trim();
-                    
-                    /*
-                    -Added other strings for remaining textfields
-                    -Edited by Matthew Blake
-                    */
                     String runsStr = tfRuns.getText().trim();
                     String earnedStr = tfEarned.getText().trim();
-                    String BaseOnBallsStr = tfBaseOnBalls.getText().trim();
+                    String BaseOnBallsStr = tfBaseOnBalls.getText().trim();  // This was missing
                     String SOStr = tfSO.getText().trim();
                     String AtBatsStr = tfAtBats.getText().trim();
                     String BattFacedStr = tfBattFaced.getText().trim();
                     String NumPitchesStr = tfNumOfPitches.getText().trim();
+                    
 
                     // If the entire row is empty, skip it.
                     if (name.isEmpty() && inningsStr.isEmpty() && earnedStr.isEmpty() && 
@@ -307,7 +304,18 @@ public class PitcherTeamApp extends Application {
                     
                     
                     // Create the Pitcher object from validated data.
-                    Pitcher p = new Pitcher(name, innings, earnedRuns);
+                    Pitcher p = new Pitcher(
+                        name,
+                        Double.parseDouble(inningsStr),
+                        Integer.parseInt(earnedStr),
+                        Integer.parseInt(hitsStr),
+                        Integer.parseInt(runsStr),
+                        Integer.parseInt(BaseOnBallsStr),
+                        Integer.parseInt(SOStr),
+                        Integer.parseInt(AtBatsStr),
+                        Integer.parseInt(BattFacedStr),
+                        Integer.parseInt(NumPitchesStr)
+                    );
                     pitchers.add(p);
                     rowIndex++;
                 }
@@ -494,7 +502,17 @@ public class PitcherTeamApp extends Application {
                 pw.println("Name,InningsPitched,EarnedRuns");
             }
             for (Pitcher p : pitchers) {
-                pw.println(p.getName() + "," + p.getInningsPitched() + "," + p.getEarnedRuns());
+                pw.write(String.format("%s,%.2f,%d,%d,%d,%d,%d,%d,%d,%d\n",
+                        p.getName(),
+                        p.getInningsPitched(),
+                        p.getHits(),
+                        p.getRuns(),
+                        p.getEarnedRuns(),
+                        p.getBaseOnBalls(),
+                        p.getStrikeouts(),
+                        p.getAtBats(),
+                        p.getBattersFaced(),
+                        p.getNumberOfPitches()));
             }
         }
     }
@@ -514,16 +532,26 @@ public class PitcherTeamApp extends Application {
                     continue;
                 }
                 String[] parts = line.split(",");
-                if (parts.length == 3) {
+                if (parts.length == 10) {  // Ensure we have all 10 fields
                     String name = parts[0];
                     double innings = Double.parseDouble(parts[1]);
-                    int earned = Integer.parseInt(parts[2]);
-                    pitchers.add(new Pitcher(name, innings, earned));
+                    int hits = Integer.parseInt(parts[2]);
+                    int runs = Integer.parseInt(parts[3]);
+                    int earnedRuns = Integer.parseInt(parts[4]);
+                    int baseOnBalls = Integer.parseInt(parts[5]);
+                    int strikeouts = Integer.parseInt(parts[6]);
+                    int atBats = Integer.parseInt(parts[7]);
+                    int battersFaced = Integer.parseInt(parts[8]);
+                    int numberOfPitches = Integer.parseInt(parts[9]);
+
+                    // Add a new Pitcher object with all the required fields
+                    pitchers.add(new Pitcher(name, innings, earnedRuns, hits, runs, baseOnBalls, strikeouts, atBats, battersFaced, numberOfPitches));
                 }
             }
         }
         return pitchers;
     }
+
 
     /*
      * Generate a formatted report from the list of Pitcher objects.
@@ -533,14 +561,44 @@ public class PitcherTeamApp extends Application {
         StringBuilder sb = new StringBuilder();
         sb.append("Game Pitcher Report\n");
         sb.append("====================\n\n");
-        sb.append(String.format("%-20s %-15s %-15s %-10s\n", "Name", "Innings", "Earned Runs", "ERA"));
-        sb.append("-----------------------------------------------------------\n");
+
+        // Define the column widths for headers and data
+        int nameWidth = 15;
+        int inningsWidth = 15;
+        int earnedRunsWidth = 17;
+        int hitsWidth = 10;
+        int runsWidth = 10;
+        int bbWidth = 10;
+        int soWidth = 10;
+        int atBatsWidth = 15;
+        int battersFacedWidth = 17;
+        int pitchesWidth = 13;
+        int eraWidth = 10;
+
+        // Add the header with padding to ensure proper alignment
+        sb.append(String.format("%-" + nameWidth + "s %" + inningsWidth + "s %" + earnedRunsWidth + "s %" + hitsWidth + "s %" + runsWidth + "s %" + bbWidth + "s %" + soWidth + "s %" + atBatsWidth + "s %" + battersFacedWidth + "s %" + pitchesWidth + "s %" + eraWidth + "s\n", 
+                                "Name", "Innings", "Earned Runs", "Hits", "Runs", "BB", "SO", "At Bats", "Batters Faced", "Pitches", "ERA"));
+        sb.append("-".repeat(nameWidth + inningsWidth + earnedRunsWidth + hitsWidth + runsWidth + bbWidth + soWidth + atBatsWidth + battersFacedWidth + pitchesWidth + eraWidth) + "\n");
+
+        // Add data for each pitcher
         for (Pitcher p : pitchers) {
-            sb.append(String.format("%-20s %-15.2f %-15d %-10.2f\n",
-                    p.getName(), p.getInningsPitched(), p.getEarnedRuns(), p.calculateERA()));
+            sb.append(String.format("%-" + nameWidth + "s  %" + inningsWidth + ".2f     %" + earnedRunsWidth + "d         %" + hitsWidth + "d   %" + runsWidth + "d    %" + bbWidth + "d   %" + soWidth + "d %" + atBatsWidth + "d   %" + battersFacedWidth + "d         %" + pitchesWidth + "d      %" + eraWidth + ".2f\n",
+                    p.getName(),
+                    p.getInningsPitched(),
+                    p.getEarnedRuns(),
+                    p.getHits(),
+                    p.getRuns(),
+                    p.getBaseOnBalls(),
+                    p.getStrikeouts(),
+                    p.getAtBats(),
+                    p.getBattersFaced(),
+                    p.getNumberOfPitches(),
+                    p.calculateERA()));
         }
         return sb.toString();
     }
+
+
 
     public static void main(String[] args) {
         launch(args);
