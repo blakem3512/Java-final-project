@@ -15,20 +15,20 @@
 package csd2522.wrm.mavenproject1;
 
 // JavaFX imports for application lifecycle and window management.
-import javafx.application.Application;      // Used to extend the Application class.
-import javafx.stage.Stage;                  // Manages the primary window (stage) of the app.
-import javafx.scene.Scene;                  // Represents a scene (container for all content).
-import javafx.scene.control.*;              // Provides JavaFX UI controls (Button, Label, DatePicker, Alert, TextArea, etc.).
-import javafx.scene.layout.*;               // Contains layout containers like VBox, HBox, BorderPane.
-import javafx.geometry.*;                   // Supplies layout geometry classes (Insets, Pos, etc.).
-import javafx.scene.Node;                   // Base class for all scene graph nodes (used for dynamic UI element access).
+import javafx.application.Application;      
+import javafx.stage.Stage;                  
+import javafx.scene.Scene;                  
+import javafx.scene.control.*;             
+import javafx.scene.layout.*;               
+import javafx.geometry.*;                   
+import javafx.scene.Node;                   
 
 
 // Standard Java library imports.
-import java.util.*;                         // Provides collection classes like List and ArrayList.
-import java.time.LocalDate;                 // Deals with dates without time-of-day details.
-import java.time.format.DateTimeFormatter;  // Formats LocalDate for file naming.
-import java.io.*;                           // Provides I/O functionalities for reading and writing files.
+import java.util.*;                         
+import java.time.LocalDate;                 
+import java.time.format.DateTimeFormatter;  
+import java.io.*;                           
 
 public class PitcherTeamApp extends Application {
 
@@ -337,7 +337,7 @@ public class PitcherTeamApp extends Application {
         });
         
         /*
-        - Temporarily made bigger to incorporate more data to be entered
+        - Made bigger to incorporate the whole window
         - Edited by Matthew Blake
         */
         return new Scene(pane, 1300, 450);
@@ -351,7 +351,10 @@ public class PitcherTeamApp extends Application {
     private HBox createPitcherRow() {
         HBox row = new HBox(10);
         row.setAlignment(Pos.CENTER_LEFT);
-        
+
+        /*
+        -Creates the textfields and sets the width alignment of each one
+        */
         TextField tfName = new TextField();
         tfName.setPromptText("Name");
         tfName.setPrefWidth(150);  // edited by Wyatt: Fixed width for alignment.
@@ -370,27 +373,27 @@ public class PitcherTeamApp extends Application {
 
         TextField tfRuns = new TextField();
         tfRuns.setPromptText("Runs");
-        tfRuns.setPrefWidth(120); 
+        tfRuns.setPrefWidth(120);  // edited by Matthew Blake
         
         TextField tfBaseOnBalls = new TextField();
         tfBaseOnBalls.setPromptText("Base on Balls");
-        tfBaseOnBalls.setPrefWidth(120);
+        tfBaseOnBalls.setPrefWidth(120); // edited by Matthew Blake
 
         TextField tfSO = new TextField();
         tfSO.setPromptText("Strikeouts");
-        tfSO.setPrefWidth(120);
+        tfSO.setPrefWidth(120);        // edited by Matthew Blake
 
         TextField tfAtBats = new TextField();
         tfAtBats.setPromptText("At Bats");
-        tfAtBats.setPrefWidth(120);
+        tfAtBats.setPrefWidth(120);    // edited by Matthew Blake
 
         TextField tfBattFaced = new TextField();
         tfBattFaced.setPromptText("Batters Faced");
-        tfBattFaced.setPrefWidth(120);
+        tfBattFaced.setPrefWidth(120); // edited by Mattew Blake
 
         TextField tfNumOfPitches = new TextField();
         tfNumOfPitches.setPromptText("Number of Pitches");
-        tfNumOfPitches.setPrefWidth(120);
+        tfNumOfPitches.setPrefWidth(120); 
 
         row.getChildren().addAll(tfName, tfInnings, tfHits, tfRuns, tfEarned, tfBaseOnBalls, tfSO, tfAtBats, tfBattFaced, tfNumOfPitches);
         return row;
@@ -495,7 +498,7 @@ public class PitcherTeamApp extends Application {
     private void writeGameDataToFile(String fileName, List<Pitcher> pitchers) throws IOException {
         File file = new File(fileName);
         boolean fileExists = file.exists();
-
+    
         try (PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fileName, true)))) {
             // Write a header line if the file is new.
             if (!fileExists || file.length() == 0) {
@@ -582,6 +585,7 @@ public class PitcherTeamApp extends Application {
 
         // Add data for each pitcher
         for (Pitcher p : pitchers) {
+            // some padding to help with formatting of the report has been added
             sb.append(String.format("%-" + nameWidth + "s  %" + inningsWidth + ".2f     %" + earnedRunsWidth + "d         %" + hitsWidth + "d   %" + runsWidth + "d    %" + bbWidth + "d   %" + soWidth + "d %" + atBatsWidth + "d   %" + battersFacedWidth + "d         %" + pitchesWidth + "d      %" + eraWidth + ".2f\n",
                     p.getName(),
                     p.getInningsPitched(),
