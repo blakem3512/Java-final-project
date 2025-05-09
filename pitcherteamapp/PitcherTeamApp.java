@@ -10,25 +10,26 @@
     Description:   Create a baseball statistics program that produce a report's 
                    list of the statistics for all pitchers in that game and 
                    calculates the earned run average for each pitcher.
+                   Updated to include a multi-game summary that reads multiple game files
+                   and summarizes each pitcher's statistics over a specified number of games.
 */
 
 package csd2522.wrm.mavenproject1;
 
 // JavaFX imports for application lifecycle and window management.
-import javafx.application.Application;      
-import javafx.stage.Stage;                  
-import javafx.scene.Scene;                  
-import javafx.scene.control.*;             
-import javafx.scene.layout.*;               
-import javafx.geometry.*;                   
-import javafx.scene.Node;                   
-
+import javafx.application.Application;      // Used to extend the Application class.
+import javafx.stage.Stage;                  // Manages the primary window (stage) of the app.
+import javafx.scene.Scene;                  // Represents a scene (container for all content).
+import javafx.scene.control.*;              // Provides JavaFX UI controls (Button, Label, DatePicker, Alert, TextArea, etc.).
+import javafx.scene.layout.*;               // Contains layout containers like VBox, HBox, BorderPane.
+import javafx.geometry.*;                   // Supplies layout geometry classes (Insets, Pos, etc.).
+import javafx.scene.Node;                   // Base class for all scene graph nodes (used for dynamic UI element access).
 
 // Standard Java library imports.
-import java.util.*;                         
-import java.time.LocalDate;                 
-import java.time.format.DateTimeFormatter;  
-import java.io.*;                           
+import java.util.*;                         // Provides collection classes like List and ArrayList.
+import java.time.LocalDate;                 // Deals with dates without time-of-day details.
+import java.time.format.DateTimeFormatter;  // Formats LocalDate for file naming.
+import java.io.*;                           // Provides I/O functionalities for reading and writing files.
 
 public class PitcherTeamApp extends Application {
 
@@ -51,7 +52,7 @@ public class PitcherTeamApp extends Application {
     /*
      * Create the Main Menu Scene.
      * Changes made from the previous code:
-     * - Added a main menu for navigation between data entry and report generation.
+     * - Added a main menu for navigation between data entry, report generation, multi-game summary, and exit.
      * - Buttons provided to either enter data, generate report, or exit.
      * Edited by Wyatt.
      */
@@ -65,6 +66,7 @@ public class PitcherTeamApp extends Application {
 
         Button btnEnterData = new Button("Enter Game Data");
         Button btnGenerateReport = new Button("Generate Game Report");
+        Button btnMultiGameSummary = new Button("Multi-Game Summary");
         Button btnExit = new Button("Exit");
 
         // Action: Switch to Data Entry Scene.
@@ -80,15 +82,21 @@ public class PitcherTeamApp extends Application {
             primaryStage.show();
         });
 
-        // Action: Switch to Game Report Scene.
+        // Action: Switch to Single Game Report Scene.
         btnGenerateReport.setOnAction(e -> {
             Scene gameReportScene = createGameReportScene();
             primaryStage.setScene(gameReportScene);
         });
 
+        // Action: Switch to Multi-Game Summary Scene.
+        btnMultiGameSummary.setOnAction(e -> {
+            Scene summaryScene = createSummaryReportScene();
+            primaryStage.setScene(summaryScene);
+        });
+
         btnExit.setOnAction(e -> primaryStage.close());
 
-        root.getChildren().addAll(titleLabel, btnEnterData, btnGenerateReport, btnExit);
+        root.getChildren().addAll(titleLabel, btnEnterData, btnGenerateReport, btnMultiGameSummary, btnExit);
         return new Scene(root, 400, 300);
     }
 
@@ -127,9 +135,8 @@ public class PitcherTeamApp extends Application {
         nameHeader.setPrefWidth(150);  // edited by Wyatt
         Label inningsHeader = new Label("Innings Pitched");
         inningsHeader.setPrefWidth(135);  // edited by Wyatt
-        Label  hitsHeader = new Label("Hits");
+        Label hitsHeader = new Label("Hits");
         hitsHeader.setPrefWidth(120);  // edited by Wyatt
-        
         
         Label runHeader = new Label("Runs");
         runHeader.setPrefWidth(120);  // edited by Matthew Blake
@@ -217,17 +224,12 @@ public class PitcherTeamApp extends Application {
             for (Node node : pitcherRowsContainer.getChildren()) {
                 if (node instanceof HBox) {
                     HBox row = (HBox) node;
-                    // Expect three TextFields (Name, Innings, Earned Runs) in each row.
-                    if (row.getChildren().size() < 3)
+                    // Expect ten TextFields in each row.
+                    if (row.getChildren().size() < 10)
                         continue;
                     TextField tfName = (TextField) row.getChildren().get(0);
                     TextField tfInnings = (TextField) row.getChildren().get(1);
                     TextField tfHits = (TextField) row.getChildren().get(2);
-                    
-                    /*
-                    -Added other textfields for remaining information
-                    -Edited by Matthew Blake
-                    */
                     TextField tfRuns = (TextField) row.getChildren().get(3);
                     TextField tfEarned = (TextField) row.getChildren().get(4);
                     TextField tfBaseOnBalls = (TextField) row.getChildren().get(5);
@@ -236,32 +238,30 @@ public class PitcherTeamApp extends Application {
                     TextField tfBattFaced = (TextField) row.getChildren().get(8);
                     TextField tfNumOfPitches = (TextField) row.getChildren().get(9);
                    
-                    
                     // Get text from the TextFields
                     String name = tfName.getText().trim();
                     String inningsStr = tfInnings.getText().trim();
                     String hitsStr = tfHits.getText().trim();
                     String runsStr = tfRuns.getText().trim();
                     String earnedStr = tfEarned.getText().trim();
-                    String BaseOnBallsStr = tfBaseOnBalls.getText().trim();  // This was missing
-                    String SOStr = tfSO.getText().trim();
-                    String AtBatsStr = tfAtBats.getText().trim();
-                    String BattFacedStr = tfBattFaced.getText().trim();
-                    String NumPitchesStr = tfNumOfPitches.getText().trim();
+                    String baseOnBallsStr = tfBaseOnBalls.getText().trim();  // This was missing previously
+                    String soStr = tfSO.getText().trim();
+                    String atBatsStr = tfAtBats.getText().trim();
+                    String battFacedStr = tfBattFaced.getText().trim();
+                    String numPitchesStr = tfNumOfPitches.getText().trim();
                     
-
                     // If the entire row is empty, skip it.
-                    if (name.isEmpty() && inningsStr.isEmpty() && earnedStr.isEmpty() && 
-                            hitsStr.isEmpty() && runsStr.isEmpty() && BaseOnBallsStr.isEmpty() &&
-                            SOStr.isEmpty() && AtBatsStr.isEmpty() && BattFacedStr.isEmpty() && NumPitchesStr.isEmpty()) {
+                    if (name.isEmpty() && inningsStr.isEmpty() && hitsStr.isEmpty() && runsStr.isEmpty() &&
+                            earnedStr.isEmpty() && baseOnBallsStr.isEmpty() && soStr.isEmpty() && 
+                            atBatsStr.isEmpty() && battFacedStr.isEmpty() && numPitchesStr.isEmpty()) {
                         rowIndex++;
                         continue;
                     }
                     
                     // If partially filled, show an error.
-                    if (name.isEmpty() || inningsStr.isEmpty() || earnedStr.isEmpty() || 
-                            hitsStr.isEmpty() || runsStr.isEmpty() || BaseOnBallsStr.isEmpty() ||
-                            SOStr.isEmpty() ||AtBatsStr.isEmpty() || BattFacedStr.isEmpty() || NumPitchesStr.isEmpty()) {
+                    if (name.isEmpty() || inningsStr.isEmpty() || hitsStr.isEmpty() || runsStr.isEmpty() ||
+                            earnedStr.isEmpty() || baseOnBallsStr.isEmpty() || soStr.isEmpty() ||
+                            atBatsStr.isEmpty() || battFacedStr.isEmpty() || numPitchesStr.isEmpty()) {
                         showAlert(Alert.AlertType.ERROR, "Validation Error",
                             "Incomplete data in pitcher row " + rowIndex + ". Please fill all fields or leave all blank.");
                         return;
@@ -302,7 +302,6 @@ public class PitcherTeamApp extends Application {
                     Base on Balls, Strikeouts, At Bats, Batters faced, and # of pitches
                     */
                     
-                    
                     // Create the Pitcher object from validated data.
                     Pitcher p = new Pitcher(
                         name,
@@ -310,11 +309,11 @@ public class PitcherTeamApp extends Application {
                         Integer.parseInt(earnedStr),
                         Integer.parseInt(hitsStr),
                         Integer.parseInt(runsStr),
-                        Integer.parseInt(BaseOnBallsStr),
-                        Integer.parseInt(SOStr),
-                        Integer.parseInt(AtBatsStr),
-                        Integer.parseInt(BattFacedStr),
-                        Integer.parseInt(NumPitchesStr)
+                        Integer.parseInt(baseOnBallsStr),
+                        Integer.parseInt(soStr),
+                        Integer.parseInt(atBatsStr),
+                        Integer.parseInt(battFacedStr),
+                        Integer.parseInt(numPitchesStr)
                     );
                     pitchers.add(p);
                     rowIndex++;
@@ -337,24 +336,21 @@ public class PitcherTeamApp extends Application {
         });
         
         /*
-        - Made bigger to incorporate the whole window
+        - Temporarily made bigger to incorporate more data to be entered
         - Edited by Matthew Blake
         */
         return new Scene(pane, 1300, 450);
     }
 
     /*
-     * Helper method to create a new pitcher row (HBox) containing three TextFields.
+     * Helper method to create a new pitcher row (HBox) containing ten TextFields.
      * Each text field is given a fixed preferred width to line up with the header labels.
-     * Edited by Wyatt.
+     * Edited by Matthew Blake.
      */
     private HBox createPitcherRow() {
         HBox row = new HBox(10);
         row.setAlignment(Pos.CENTER_LEFT);
-
-        /*
-        -Creates the textfields and sets the width alignment of each one
-        */
+        
         TextField tfName = new TextField();
         tfName.setPromptText("Name");
         tfName.setPrefWidth(150);  // edited by Wyatt: Fixed width for alignment.
@@ -363,37 +359,37 @@ public class PitcherTeamApp extends Application {
         tfInnings.setPromptText("Innings");
         tfInnings.setPrefWidth(130);  // edited by Wyatt: Fixed width for alignment.
         
-        TextField tfEarned = new TextField();
-        tfEarned.setPromptText("Earned Runs");
-        tfEarned.setPrefWidth(120);  // edited by Wyatt: Fixed width for alignment.
-        
         TextField tfHits = new TextField();
         tfHits.setPromptText("Hits");
         tfHits.setPrefWidth(120);   // edited by Matthew Blake
 
         TextField tfRuns = new TextField();
         tfRuns.setPromptText("Runs");
-        tfRuns.setPrefWidth(120);  // edited by Matthew Blake
+        tfRuns.setPrefWidth(120); 
         
+        TextField tfEarned = new TextField();
+        tfEarned.setPromptText("Earned Runs");
+        tfEarned.setPrefWidth(120);  // edited by Wyatt
+
         TextField tfBaseOnBalls = new TextField();
         tfBaseOnBalls.setPromptText("Base on Balls");
-        tfBaseOnBalls.setPrefWidth(120); // edited by Matthew Blake
+        tfBaseOnBalls.setPrefWidth(120);  // edited by Matthew Blake
 
         TextField tfSO = new TextField();
         tfSO.setPromptText("Strikeouts");
-        tfSO.setPrefWidth(120);        // edited by Matthew Blake
+        tfSO.setPrefWidth(120);  // edited by Matthew Blake
 
         TextField tfAtBats = new TextField();
         tfAtBats.setPromptText("At Bats");
-        tfAtBats.setPrefWidth(120);    // edited by Matthew Blake
+        tfAtBats.setPrefWidth(120);  // edited by Matthew Blake
 
         TextField tfBattFaced = new TextField();
         tfBattFaced.setPromptText("Batters Faced");
-        tfBattFaced.setPrefWidth(120); // edited by Mattew Blake
+        tfBattFaced.setPrefWidth(120);  // edited by Matthew Blake
 
         TextField tfNumOfPitches = new TextField();
         tfNumOfPitches.setPromptText("Number of Pitches");
-        tfNumOfPitches.setPrefWidth(120); 
+        tfNumOfPitches.setPrefWidth(120);  // edited by Matthew Blake
 
         row.getChildren().addAll(tfName, tfInnings, tfHits, tfRuns, tfEarned, tfBaseOnBalls, tfSO, tfAtBats, tfBattFaced, tfNumOfPitches);
         return row;
@@ -406,8 +402,8 @@ public class PitcherTeamApp extends Application {
      * - Uses a DatePicker to select a game date.
      * - Reads data from the CSV, creates Pitcher objects, calculates ERA, and generates a report.
      * - Includes a Save Report button to store the report in a text file for printing.
-     * Edited by Wyatt.
-     */
+     * Edited by Matthew, Henry, and Wyatt.
+     */   
     private Scene createGameReportScene() {
         BorderPane pane = new BorderPane();
         pane.setPadding(new Insets(15));
@@ -480,6 +476,137 @@ public class PitcherTeamApp extends Application {
     }
 
     /*
+     * Create the Multi-Game Summary Scene.
+     * This new scene allows the user to specify the number of recent game files 
+     * to combined and summarize pitcher statistics over those games.
+     * Edited by Matthew, Wyatt, Zach
+     * Final Edit -  5/9/25.
+     */
+    private Scene createSummaryReportScene() {
+        BorderPane pane = new BorderPane();
+        pane.setPadding(new Insets(15));
+
+        // TOP: User enters number of recent games to summarize.
+        HBox topBox = new HBox(10);
+        topBox.setAlignment(Pos.CENTER_LEFT);
+        Label lblInstruction = new Label("Enter number of recent games to summarize:");
+        TextField tfNumGames = new TextField();
+        tfNumGames.setPrefWidth(50);
+        Button btnSummarize = new Button("Summarize");
+        topBox.getChildren().addAll(lblInstruction, tfNumGames, btnSummarize);
+        pane.setTop(topBox);
+
+        // CENTER: TextArea displays summary report.
+        TextArea summaryArea = new TextArea();
+        summaryArea.setEditable(false);
+        pane.setCenter(summaryArea);
+
+        // BOTTOM: Back button.
+        HBox bottomBox = new HBox(10);
+        bottomBox.setAlignment(Pos.CENTER_RIGHT);
+        Button btnBack = new Button("Back");
+        bottomBox.getChildren().add(btnBack);
+        pane.setBottom(bottomBox);
+
+        btnBack.setOnAction(e -> primaryStage.setScene(createMainMenuScene()));
+
+        btnSummarize.setOnAction(e -> {
+            int numGames;
+            try {
+                numGames = Integer.parseInt(tfNumGames.getText().trim());
+            } catch (NumberFormatException ex) {
+                showAlert(Alert.AlertType.ERROR, "Validation Error", "Invalid number of games.");
+                return;
+            }
+            // Retrieves all game files 
+            File dir = new File(".");
+            File[] gameFiles = dir.listFiles((d, name) -> name.matches("game_\\d{4}-\\d{2}-\\d{2}\\.csv"));
+            if (gameFiles == null || gameFiles.length < numGames) {
+                showAlert(Alert.AlertType.ERROR, "File Error", "Not enough game files available for summarization.");
+                return;
+            }
+            // Sorts game files by name so that the most recent games (by date in the filename) come first.
+            Arrays.sort(gameFiles, Comparator.comparing(File::getName).reversed());
+    
+            // Use a Map to combine the statistics per pitcher.
+            Map<String, CombinedStats> statsMap = new HashMap<>();
+            for (int i = 0; i < numGames; i++) {
+                try {
+                    List<Pitcher> gamePitchers = readGameDataFromFile(gameFiles[i].getName());
+                    for (Pitcher p : gamePitchers) {
+                        CombinedStats agg = statsMap.getOrDefault(p.getName(), new CombinedStats());
+                        agg.inningsPitched   += p.getInningsPitched();
+                        agg.earnedRuns       += p.getEarnedRuns();
+                        agg.hits             += p.getHits();
+                        agg.runs             += p.getRuns();
+                        agg.baseOnBalls      += p.getBaseOnBalls();
+                        agg.strikeouts       += p.getStrikeouts();
+                        agg.atBats           += p.getAtBats();
+                        agg.battersFaced     += p.getBattersFaced();
+                        agg.numPitches       += p.getNumberOfPitches();
+                        statsMap.put(p.getName(), agg);
+                    }
+                } catch (IOException ex) {
+                    showAlert(Alert.AlertType.ERROR, "File Error", "Error reading file " + gameFiles[i].getName() + ": " + ex.getMessage());
+                    return;
+                }
+            }
+    
+            // Generates a formatted summary report.
+            StringBuilder sb = new StringBuilder();
+            sb.append("Summary Report for Last ").append(numGames).append(" Games\n");
+            sb.append("============================================================\n\n");
+    
+            // Defines column widths for the headers and data.
+            int nameWidth = 15;
+            int inningsWidth = 15;
+            int erWidth = 15; 
+            int hitsWidth = 10;
+            int runsWidth = 10;
+            int bbWidth = 10;
+            int soWidth = 10;
+            int atBatsWidth = 15;
+            int battersWidth = 17;
+            int pitchesWidth = 13;
+            int eraWidth = 10;
+    
+            // Writes header.
+            sb.append(String.format("%-" + nameWidth + "s %" + inningsWidth + "s %" + erWidth + "s %" 
+                    + hitsWidth + "s %" + runsWidth + "s %" + bbWidth + "s %" + soWidth + "s %"
+                    + atBatsWidth + "s %" + battersWidth + "s %" + pitchesWidth + "s %" + eraWidth + "s\n", 
+                    "Name", "Innings", "ER", "Hits", "Runs", "BB", "SO", "At Bats", "Batters Faced", "Pitches", "ERA"));
+            sb.append("-".repeat(nameWidth + inningsWidth + erWidth + hitsWidth + runsWidth + bbWidth 
+                    + soWidth + atBatsWidth + battersWidth + pitchesWidth + eraWidth)).append("\n");
+    
+            // Writes combined stat data.
+            for (Map.Entry<String, CombinedStats> entry : statsMap.entrySet()) {
+                String name = entry.getKey();
+                CombinedStats agg = entry.getValue();
+                // Calculates ERA based on aggregated totals.
+                double era = (agg.inningsPitched > 0) ? (agg.earnedRuns * 9) / agg.inningsPitched : 0;
+    
+                sb.append(String.format("%-" + nameWidth + "s  %" + inningsWidth + ".2f %" + erWidth + "d %" 
+                    + hitsWidth + "d %" + runsWidth + "d %" + bbWidth + "d %" + soWidth + "d %"
+                    + atBatsWidth + "d %" + battersWidth + "d %" + pitchesWidth + "d %" + eraWidth + ".2f\n",
+                    name,
+                    agg.inningsPitched,
+                    agg.earnedRuns,
+                    agg.hits,
+                    agg.runs,
+                    agg.baseOnBalls,
+                    agg.strikeouts,
+                    agg.atBats,
+                    agg.battersFaced,
+                    agg.numPitches,
+                    era));
+            }
+            summaryArea.setText(sb.toString());
+        });
+
+        return new Scene(pane, 800, 500);
+    }
+
+    /*
      * Helper method to display an alert.
      * Edited by Wyatt: This method is reused throughout the app to display messages.
      */
@@ -493,16 +620,16 @@ public class PitcherTeamApp extends Application {
 
     /*
      * Write game data to a CSV file (Flat file type). Data is appended if the file already exists.
-     * Edited by Wyatt.
+     * Edited by Henry.
      */
     private void writeGameDataToFile(String fileName, List<Pitcher> pitchers) throws IOException {
         File file = new File(fileName);
         boolean fileExists = file.exists();
-    
+
         try (PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(fileName, true)))) {
             // Write a header line if the file is new.
             if (!fileExists || file.length() == 0) {
-                pw.println("Name,InningsPitched,EarnedRuns");
+                pw.println("Name,InningsPitched,Hits,Runs,EarnedRuns,BaseOnBalls,Strikeouts,AtBats,BattersFaced,NumberOfPitches");
             }
             for (Pitcher p : pitchers) {
                 pw.write(String.format("%s,%.2f,%d,%d,%d,%d,%d,%d,%d,%d\n",
@@ -522,7 +649,7 @@ public class PitcherTeamApp extends Application {
 
     /*
      * Read game data from a CSV file and convert each line to a Pitcher object.
-     * Edited by Wyatt.
+     * Edited by Matthew and Wyatt.
      */
     private List<Pitcher> readGameDataFromFile(String fileName) throws IOException {
         List<Pitcher> pitchers = new ArrayList<>();
@@ -547,14 +674,13 @@ public class PitcherTeamApp extends Application {
                     int battersFaced = Integer.parseInt(parts[8]);
                     int numberOfPitches = Integer.parseInt(parts[9]);
 
-                    // Add a new Pitcher object with all the required fields
+                    // Add a new Pitcher object with all the required fields.
                     pitchers.add(new Pitcher(name, innings, earnedRuns, hits, runs, baseOnBalls, strikeouts, atBats, battersFaced, numberOfPitches));
                 }
             }
         }
         return pitchers;
     }
-
 
     /*
      * Generate a formatted report from the list of Pitcher objects.
@@ -565,7 +691,7 @@ public class PitcherTeamApp extends Application {
         sb.append("Game Pitcher Report\n");
         sb.append("====================\n\n");
 
-        // Define the column widths for headers and data
+        // Define the column widths for headers and data.
         int nameWidth = 15;
         int inningsWidth = 15;
         int earnedRunsWidth = 17;
@@ -578,14 +704,13 @@ public class PitcherTeamApp extends Application {
         int pitchesWidth = 13;
         int eraWidth = 10;
 
-        // Add the header with padding to ensure proper alignment
+        // Adds the header with padding to ensure proper alignment.
         sb.append(String.format("%-" + nameWidth + "s %" + inningsWidth + "s %" + earnedRunsWidth + "s %" + hitsWidth + "s %" + runsWidth + "s %" + bbWidth + "s %" + soWidth + "s %" + atBatsWidth + "s %" + battersFacedWidth + "s %" + pitchesWidth + "s %" + eraWidth + "s\n", 
-                                "Name", "Innings", "Earned Runs", "Hits", "Runs", "BB", "SO", "At Bats", "Batters Faced", "Pitches", "ERA"));
-        sb.append("-".repeat(nameWidth + inningsWidth + earnedRunsWidth + hitsWidth + runsWidth + bbWidth + soWidth + atBatsWidth + battersFacedWidth + pitchesWidth + eraWidth) + "\n");
+                "Name", "Innings", "Earned Runs", "Hits", "Runs", "BB", "SO", "At Bats", "Batters Faced", "Pitches", "ERA"));
+        sb.append("-".repeat(nameWidth + inningsWidth + earnedRunsWidth + hitsWidth + runsWidth + bbWidth + soWidth + atBatsWidth + battersFacedWidth + pitchesWidth + eraWidth)).append("\n");
 
-        // Add data for each pitcher
+        // Adds data for each pitcher.
         for (Pitcher p : pitchers) {
-            // some padding to help with formatting of the report has been added
             sb.append(String.format("%-" + nameWidth + "s  %" + inningsWidth + ".2f     %" + earnedRunsWidth + "d         %" + hitsWidth + "d   %" + runsWidth + "d    %" + bbWidth + "d   %" + soWidth + "d %" + atBatsWidth + "d   %" + battersFacedWidth + "d         %" + pitchesWidth + "d      %" + eraWidth + ".2f\n",
                     p.getName(),
                     p.getInningsPitched(),
@@ -602,9 +727,21 @@ public class PitcherTeamApp extends Application {
         return sb.toString();
     }
 
-
+    // Private helper class to holf the combined stats for multi-game summaries.
+    // Final Edit - 5/9/25
+    private class CombinedStats {
+        double inningsPitched = 0;
+        int earnedRuns = 0;
+        int hits = 0;
+        int runs = 0;
+        int baseOnBalls = 0;
+        int strikeouts = 0;
+        int atBats = 0;
+        int battersFaced = 0;
+        int numPitches = 0;
+    }
 
     public static void main(String[] args) {
         launch(args);
-    }    
+    }
 }
