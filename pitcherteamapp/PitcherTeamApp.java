@@ -477,7 +477,7 @@ private Scene createGameReportScene() {
         }
     });
 
-    return new Scene(pane, 800, 400);
+    return new Scene(pane, 1200, 400);
 }
 
 
